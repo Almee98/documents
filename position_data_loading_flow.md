@@ -1,5 +1,19 @@
 ## This is a data flow diagram for how the data loads in the comment section on the politician details page.
 
+Here's the sequence in order:
+
+Page mounts with a politicianWeVoteId. The PoliticianRetrieveController fires an API call to get the politician's data, which includes candidate_list (all their candidacy records). When that response arrives, CandidateStore populates candidateListsByPoliticianWeVoteId[politicianWeVoteId].
+
+CandidateStore emits a change because it just received new data. PoliticianPositionRetrieveController is listening — its onCandidateStoreChange fires, sees that a candidate list now exists (line 54), and calls positionsFirstRetrieve().
+
+positionsFirstRetrieve iterates through the candidate records and fires CandidateActions.positionListForBallotItemPublic(candidateWeVoteId) for each one — these are the actual API calls to the server asking "give me all public endorsements for this candidate."
+
+That same CandidateStore emit from step 2 also triggers onCandidateStoreChange in PoliticianDetailsPage. The page calls getAllCachedPositionsByPoliticianWeVoteId — but positions haven't been fetched yet (step 3 just initiated the calls). So the function walks the candidate list, finds nothing in allCachedPositionsAboutCandidates for each candidate, and returns [].
+
+API responses arrive (from the calls made in step 3). CandidateStore's reducer handles positionListForBallotItem, populates allCachedPositionsAboutCandidates[candidateWeVoteId] with the actual position objects, and emits again.
+
+onCandidateStoreChange fires again in PoliticianDetailsPage. Now getAllCachedPositionsByPoliticianWeVoteId finds real data in the dictionaries and returns [...actual positions...].
+
 ``` mermaid
 sequenceDiagram
     participant Page as PoliticianDetailsPage
