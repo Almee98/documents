@@ -1,6 +1,6 @@
-# This is a data flow diagram for how the data loads in the comment section on the politician details page.
+## This is a data flow diagram for how the data loads in the comment section on the politician details page.
 
-```mermaid
+``` mermaid
 sequenceDiagram
     participant Page as PoliticianDetailsPage
     participant PRC as PoliticianRetrieveController
