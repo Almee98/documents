@@ -1,6 +1,6 @@
 ## This is a data flow diagram for politician details page of Adrian Smith (with no endorsement data).
 
-``` mermaid
+
 sequenceDiagram
     participant Page as PoliticianDetailsPage
     participant PPRC as PoliticianPositionRetrieveController
@@ -44,4 +44,4 @@ sequenceDiagram
     CS-->>Page: Returns true
     Page->>Page: positionRetrieveCompleted = true
     Note over Page: Confirmed empty → remove min-height ✓
-```
+
