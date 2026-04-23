@@ -1,0 +1,45 @@
+```mermaid
+sequenceDiagram
+    participant Page as PoliticianDetailsPage
+    participant PPRC as PoliticianPositionRetrieveController
+    participant API as API Server
+    participant CS as CandidateStore
+
+    Note over CS: Step 1: Page loads<br/>positionListRetrieveCompleteByBallotItem = {}<br/>Getter returns false for any candidate
+
+    Note over CS: Step 2: Politician data arrives
+
+    CS->>CS: candidateListsByPoliticianWeVoteId[adrianSmithId]<br/>= [{ we_vote_id: "wv02cand12345", ... }]
+    CS->>CS: Emit change
+
+    par PoliticianPositionRetrieveController
+        CS-->>PPRC: onCandidateStoreChange()
+        PPRC->>PPRC: Sees candidate list exists
+        PPRC->>API: positionListForBallotItemPublic("wv02cand12345")
+    and PoliticianDetailsPage (Step 3)
+        CS-->>Page: onCandidateStoreChange()
+        Page->>CS: getAllCachedPositionsByPoliticianWeVoteId()
+        CS-->>Page: Returns []
+        Page->>CS: positionListRetrieveHasCompletedForCandidate("wv02cand12345")
+        CS-->>Page: Returns false
+        Page->>Page: positionRetrieveCompleted = false
+        Note over Page: Still loading → keep min-height ✓
+    end
+
+    Note over API: Step 4: API responds with count = 0
+
+    API-->>CS: positionListForBallotItem { count: 0, ballot_item_we_vote_id: "wv02cand12345" }
+    CS->>CS: positionListRetrieveCompleteByBallotItem["wv02cand12345"] = true
+    CS->>CS: count === 0 → return updated state (with flag)
+    CS->>CS: Emit change
+
+    Note over Page: Step 5: Page re-reads store
+
+    CS-->>Page: onCandidateStoreChange()
+    Page->>CS: getAllCachedPositionsByPoliticianWeVoteId()
+    CS-->>Page: Returns [] (still empty)
+    Page->>CS: positionListRetrieveHasCompletedForCandidate("wv02cand12345")
+    CS-->>Page: Returns true
+    Page->>Page: positionRetrieveCompleted = true
+    Note over Page: Confirmed empty → remove min-height ✓
+```
